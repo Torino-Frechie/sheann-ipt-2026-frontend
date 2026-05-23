@@ -77,19 +77,19 @@ export class AccountService {
     }
 
     getAll() {
-        return this.http.get<Account[]>(baseUrl);
+        return this.http.get<Account[]>(baseUrl, { withCredentials: true });
     }
 
     getById(id: string) {
-        return this.http.get<Account>(`${baseUrl}/${id}`);
+        return this.http.get<Account>(`${baseUrl}/${id}`, { withCredentials: true });
     }
 
     create(params: any) {
-        return this.http.post(baseUrl, params);
+        return this.http.post(baseUrl, params, { withCredentials: true });
     }
 
     update(id: string, params: any) {
-        return this.http.put(`${baseUrl}/${id}`, params)
+        return this.http.put(`${baseUrl}/${id}`, params, { withCredentials: true })
             .pipe(map((account: any) => {
                 // update the current account if it was updated
                 if (account.id === this.accountValue?.id) {
@@ -102,7 +102,7 @@ export class AccountService {
     }
 
     delete(id: string) {
-        return this.http.delete(`${baseUrl}/${id}`)
+        return this.http.delete(`${baseUrl}/${id}`, { withCredentials: true })
             .pipe(finalize(() => {
                 // auto logout if the logged in account was deleted
                 if (id === this.accountValue?.id)
