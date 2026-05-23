@@ -15,8 +15,8 @@ export class FakeBackendInterceptor implements HttpInterceptor {
     constructor(private alertService: AlertService) { }
 
     private sendResendEmail(to: string, subject: string, html: string) {
-        // WARNING: Moving to real backend. Do not store API keys in frontend.
-        const resendApiKey = 'REPLACED_BY_BACKEND_SERVER_KEY';
+        // The real backend handles this now. 
+        const resendApiKey = 'DISABLED_FOR_REAL_BACKEND';
 
         return fetch('https://api.resend.com/emails', {
             method: 'POST',

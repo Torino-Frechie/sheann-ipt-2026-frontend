@@ -52,6 +52,7 @@ export class AccountService {
     }
 
     register(account: Account) {
+        console.log('Sending registration request to real backend for:', account.email);
         return this.http.post(`${baseUrl}/register`, account, { withCredentials: true });
     }
 
@@ -119,13 +120,18 @@ export class AccountService {
 
         // parse json object from base64 encoded jwt token
         try {
-            const jwtBase64 = this.accountValue.jwtToken.split('.')[1];
-            const jwtToken = JSON.parse(atob(jwtBase64));
+            const parts = this.accountValue.jwtToken.split('.');
+            if (parts.length !== 3) return;
+            const jwtToken = JSON.parse(window.atob(parts[1]));
 
             // set a timeout to refresh the token a minute before it expires
             const expires = new Date(jwtToken.exp * 1000);
             const timeout = expires.getTime() - Date.now() - (60 * 1000);
-            this.refreshTokenTimeout = setTimeout(() => this.refreshToken().subscribe(), timeout);
+
+            // Only start timer if the timeout is in the future
+            if (timeout > 0) {
+                this.refreshTokenTimeout = setTimeout(() => this.refreshToken().subscribe(), timeout);
+            }
         } catch (e) {
             console.error('Error parsing JWT token for refresh timer:', e);
         }
