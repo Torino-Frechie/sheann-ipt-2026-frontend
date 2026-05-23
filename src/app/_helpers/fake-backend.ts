@@ -160,17 +160,12 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             accounts.push(account);
             localStorage.setItem(accountsKey, JSON.stringify(accounts));
 
-            // display verification email in alert
+            // send verification email via Resend
             setTimeout(() => {
                 const verifyUrl = `${location.origin}/account/verify-email?token=${account.verificationToken}`;
-                alertService.info(`
-                    <h4>Verification Email</h4>
                 this.sendResendEmail(account.email, 'Verification Email', `
                     <p>Thanks for registering!</p>
                     <p>Please click the below link to verify your email address:</p>
-                    <p>${verifyUrl}</p>
-                    <div><strong>NOTE:</strong> The fake backend displayed this "email" so you can test without an api. A real backend would send a real email.</div>
-                `, { autoClose: false });
                     <p><a href="${verifyUrl}">${verifyUrl}</a></p>
                 `);
             }, 1000);
@@ -203,16 +198,11 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             account.resetTokenExpires = new Date(Date.now() + 24*60*60*1000).toISOString();
             localStorage.setItem(accountsKey, JSON.stringify(accounts));
 
-            // display password reset email in alert
+            // send password reset email via Resend
             setTimeout(() => {
                 const resetUrl = `${location.origin}/account/reset-password?token=${account.resetToken}`;
-                alertService.info(`
-                    <h4>Reset Password Email</h4>
                 this.sendResendEmail('frechieannt@gmail.com', 'Reset Password Email', `
                     <p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
-                    <p>${resetUrl}</p>
-                    <div><strong>NOTE:</strong> The fake backend displayed this "email" so you can test without an api. A real backend would send a real email.</div>
-                `, { autoClose: false });
                     <p><a href="${resetUrl}">${resetUrl}</a></p>
                 `);
             }, 1000);
