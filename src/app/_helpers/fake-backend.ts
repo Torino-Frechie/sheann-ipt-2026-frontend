@@ -37,9 +37,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
         const { url, method, headers, body } = request;
         const alertService = this.alertService;
 
-        return handleRoute();
-
-        function handleRoute() {
+        const handleRoute = () => {
             switch (true) {
                 case url.endsWith('/accounts/authenticate') && method === 'POST':
                     return authenticate();
@@ -71,11 +69,11 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                     // pass through any requests not handled above
                     return next.handle(request);
             }
-        }
+        };
 
         // route functions
 
-        function authenticate() {
+        const authenticate = () => {
             const { email, password } = body;
             const account = accounts.find(x => x.email === email && x.password === password && x.isVerified);
 
@@ -89,9 +87,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                 ...basicDetails(account),
                 jwtToken: generateJwtToken(account)
             });
-        }
+        };
 
-        function refreshToken() {
+        const refreshToken = () => {
             const refreshToken = getRefreshToken();
 
             if (!refreshToken) return unauthorized();
@@ -109,9 +107,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                 ...basicDetails(account),
                 jwtToken: generateJwtToken(account)
             });
-        }
+        };
 
-        function revokeToken() {
+        const revokeToken = () => {
             if (!isAuthenticated()) return unauthorized();
 
             const refreshToken = getRefreshToken();
@@ -124,9 +122,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             localStorage.setItem(accountsKey, JSON.stringify(accounts));
 
             return ok();
-        }
+        };
 
-        function register() {
+        const register = () => {
             const account = body;
 
             if (accounts.find(x => x.email === account.email)) {
@@ -171,9 +169,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             }, 1000);
 
             return ok();
-        }
+        };
 
-        function verifyEmail() {
+        const verifyEmail = () => {
             const { token } = body;
             const account = accounts.find(x => !!x.verificationToken && x.verificationToken === token);
 
@@ -184,9 +182,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             localStorage.setItem(accountsKey, JSON.stringify(accounts));
 
             return ok();
-        }
+        };
 
-        function forgotPassword() {
+        const forgotPassword = () => {
             const { email } = body;
             const account = accounts.find(x => x.email === email);
 
@@ -208,9 +206,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             }, 1000);
 
             return ok();
-        }
+        };
 
-        function validateResetToken() {
+        const validateResetToken = () => {
             const { token } = body;
             const account = accounts.find(x =>
                 !!x.resetToken && x.resetToken === token &&
@@ -220,9 +218,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             if (!account) return error('Invalid token');
 
             return ok();
-        }
+        };
 
-        function resetPassword() {
+        const resetPassword = () => {
             const { token, password } = body;
             const account = accounts.find(x =>
                 !!x.resetToken && x.resetToken === token &&
@@ -239,14 +237,14 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             localStorage.setItem(accountsKey, JSON.stringify(accounts));
 
             return ok();
-        }
+        };
 
-        function getAccounts() {
+        const getAccounts = () => {
             if (!isAuthenticated()) return unauthorized();
             return ok(accounts.map(x => basicDetails(x)));
-        }
+        };
 
-        function getAccountById() {
+        const getAccountById = () => {
             if (!isAuthenticated()) return unauthorized();
 
             let account = accounts.find(x => x.id === idFromUrl());
@@ -259,9 +257,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             }
 
             return ok(basicDetails(account));
-        }
+        };
 
-        function createAccount() {
+        const createAccount = () => {
             if (!isAuthorized(Role.Admin)) return unauthorized();
 
             const account = body;
@@ -279,9 +277,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             localStorage.setItem(accountsKey, JSON.stringify(accounts));
 
             return ok();
-        }
+        };
 
-        function updateAccount() {
+        const updateAccount = () => {
             if (!isAuthenticated()) return unauthorized();
 
             let params = body;
@@ -306,9 +304,9 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             localStorage.setItem(accountsKey, JSON.stringify(accounts));
 
             return ok(basicDetails(account));
-        }
+        };
 
-        function deleteAccount() {
+        const deleteAccount = () => {
             if (!isAuthenticated()) return unauthorized();
 
             let account = accounts.find(x => x.id === idFromUrl());
@@ -324,50 +322,50 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             accounts = accounts.filter(x => x.id !== idFromUrl());
             localStorage.setItem(accountsKey, JSON.stringify(accounts));
             return ok();
-        }
+        };
 
         // helper functions
 
-        function ok(body?: any) {
+        const ok = (body?: any) => {
             return of(new HttpResponse({ status: 200, body }))
                 .pipe(delay(500)); // delay observable to simulate server api call
-        }
+        };
 
-        function error(message: string) {
+        const error = (message: string) => {
             return throwError(() => ({ error: { message } }))
                 .pipe(materialize(), delay(500), dematerialize());
-        }
+        };
 
-        function unauthorized() {
+        const unauthorized = () => {
             return throwError(() => ({ status: 401, error: { message: 'Unauthorized' } }))
                 .pipe(materialize(), delay(500), dematerialize());
-        }
+        };
 
-        function basicDetails(account: any) {
+        const basicDetails = (account: any) => {
             const { id, title, firstName, lastName, email, role, dateCreated, isVerified } = account;
             return { id, title, firstName, lastName, email, role, dateCreated, isVerified };
-        }
+        };
 
-        function isAuthenticated() {
+        const isAuthenticated = () => {
             return !!currentAccount();
-        }
+        };
 
-        function isAuthorized(role: any) {
+        const isAuthorized = (role: any) => {
             const account = currentAccount();
             if (!account) return false;
             return account.role === role;
-        }
+        };
 
-        function idFromUrl() {
+        const idFromUrl = () => {
             const urlParts = url.split('/');
             return parseInt(urlParts[urlParts.length - 1]);
-        }
+        };
 
-        function newAccountId() {
+        const newAccountId = () => {
             return accounts.length ? Math.max(...accounts.map(x => x.id)) + 1 : 1;
-        }
+        };
 
-        function currentAccount() {
+        const currentAccount = () => {
             // check if jwt token is in auth header
             const authHeader = headers.get('Authorization');
             if (!authHeader?.startsWith('Bearer fake-jwt-token')) return;
@@ -379,18 +377,18 @@ export class FakeBackendInterceptor implements HttpInterceptor {
 
             const account = accounts.find(x => x.id === jwtToken.id);
             return account;
-        }
+        };
 
-        function generateJwtToken(account: any) {
+        const generateJwtToken = (account: any) => {
             // create token that expires in 15 minutes
             const tokenPayload = {
                 exp: Math.round(new Date(Date.now() + 15*60*1000).getTime() / 1000),
                 id: account.id
             }
             return `fake-jwt-token.${btoa(JSON.stringify(tokenPayload))}`;
-        }
+        };
 
-        function generateRefreshToken() {
+        const generateRefreshToken = () => {
             const token = new Date().getTime().toString();
 
             // add token cookie that expires in 7 days
@@ -398,12 +396,14 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             document.cookie = `fakeRefreshToken=${token}; expires=${expires}; path=/`;
 
             return token;
-        }
+        };
 
-        function getRefreshToken() {
+        const getRefreshToken = () => {
             // get refresh token from cookie
             return (document.cookie.split(';').find(x => x.includes('fakeRefreshToken')) || '=').split('=')[1];
-        }
+        };
+
+        return handleRoute();
     }
 }
 
