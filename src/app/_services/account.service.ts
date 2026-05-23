@@ -68,7 +68,12 @@ export class AccountService {
     }
 
     resetPassword(token: string, password: string, confirmPassword: string) {
-        return this.http.post(`${baseUrl}/reset-password`, { token, password, confirmPassword });
+        return this.http.post<Account>(`${baseUrl}/reset-password`, { token, password, confirmPassword })
+            .pipe(map(account => {
+                this.accountSubject.next(account);
+                this.startRefreshTokenTimer();
+                return account;
+            }));
     }
 
     getAll() {

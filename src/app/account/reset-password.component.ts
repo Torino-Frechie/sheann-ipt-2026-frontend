@@ -77,8 +77,8 @@ export class ResetPasswordComponent implements OnInit {
             .pipe(first())
             .subscribe({
                 next: () => {
-                    this.alertService.success('Password reset successful, you can now login', { keepAfterRouteChange: true });
-                    this.router.navigate(['../login'], { relativeTo: this.route });
+                    this.alertService.success('Password reset successful, you have been logged in', { keepAfterRouteChange: true });
+                    this.router.navigate(['/']);
                 },
                 error: error => {
                     this.alertService.error(error);

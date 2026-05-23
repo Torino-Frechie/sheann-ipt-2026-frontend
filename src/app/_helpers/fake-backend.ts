@@ -57,13 +57,13 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                     return resetPassword();
                 case url.endsWith('/accounts') && method === 'GET':
                     return getAccounts();
-                case url.match(/\/accounts\/\d+$/) && method === 'GET':
+                case url.match(/\/accounts\/[a-zA-Z0-9-]+$/) && method === 'GET':
                     return getAccountById();
                 case url.endsWith('/accounts') && method === 'POST':
                     return createAccount();
-                case url.match(/\/accounts\/\d+$/) && method === 'PUT':
+                case url.match(/\/accounts\/[a-zA-Z0-9-]+$/) && method === 'PUT':
                     return updateAccount();
-                case url.match(/\/accounts\/\d+$/) && method === 'DELETE':
+                case url.match(/\/accounts\/[a-zA-Z0-9-]+$/) && method === 'DELETE':
                     return deleteAccount();
                 default:
                     // pass through any requests not handled above
@@ -80,6 +80,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             if (!account) return error('Email or password is incorrect');
 
             // add refresh token to account
+            if (!account.refreshTokens) account.refreshTokens = [];
             account.refreshTokens.push(generateRefreshToken());
             localStorage.setItem(accountsKey, JSON.stringify(accounts));
 
@@ -143,8 +144,8 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             }
 
             // assign account id and a few other properties then save
-            account.id = newAccountId();
-            if (account.id === 1) {
+            account.id = generateUuid();
+            if (accounts.length === 0) {
                 // first registered account is an admin
                 account.role = Role.Admin;
             } else {
@@ -260,7 +261,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             account.isVerified = true;
             delete account.resetToken;
             delete account.resetTokenExpires;
-            
+
             // add refresh token to account to enable immediate login
             if (!account.refreshTokens) account.refreshTokens = [];
             account.refreshTokens.push(generateRefreshToken());
@@ -304,7 +305,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             }
 
             // assign account id and a few other properties then save
-            account.id = newAccountId();
+            account.id = generateUuid();
             account.dateCreated = new Date().toISOString();
             account.isVerified = true;
             account.refreshTokens = [];
@@ -396,11 +397,15 @@ export class FakeBackendInterceptor implements HttpInterceptor {
 
         const idFromUrl = () => {
             const urlParts = url.split('/');
-            return parseInt(urlParts[urlParts.length - 1]);
+            return urlParts[urlParts.length - 1];
         };
 
-        const newAccountId = () => {
-            return accounts.length ? Math.max(...accounts.map(x => x.id)) + 1 : 1;
+        const generateUuid = () => {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
         };
 
         const currentAccount = () => {
