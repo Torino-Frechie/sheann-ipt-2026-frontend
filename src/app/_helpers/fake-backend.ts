@@ -252,7 +252,8 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             if (!account) return error('Account not found');
 
             // user accounts can get own profile and admin accounts can get all profiles
-            if (account.id !== currentAccount().id && !isAuthorized(Role.Admin)) {
+            const currentUser = currentAccount();
+            if (!currentUser || (account.id !== currentUser.id && !isAuthorized(Role.Admin))) {
                 return unauthorized();
             }
 
@@ -288,7 +289,8 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             if (!account) return error('Account not found');
 
             // user accounts can update own profile and admin accounts can update all profiles
-            if (account.id !== currentAccount().id && !isAuthorized(Role.Admin)) {
+            const currentUser = currentAccount();
+            if (!currentUser || (account.id !== currentUser.id && !isAuthorized(Role.Admin))) {
                 return unauthorized();
             }
 
@@ -314,7 +316,8 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             if (!account) return error('Account not found');
 
             // user accounts can delete own account and admin accounts can delete any account
-            if (account.id !== currentAccount().id && !isAuthorized(Role.Admin)) {
+            const currentUser = currentAccount();
+            if (!currentUser || (account.id !== currentUser.id && !isAuthorized(Role.Admin))) {
                 return unauthorized();
             }
 
