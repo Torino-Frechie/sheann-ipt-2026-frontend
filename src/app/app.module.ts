@@ -32,6 +32,7 @@ import { HomeComponent } from './home';
 
         // provider used to create fake backend
         fakeBackendProvider
+    ],
     bootstrap: [AppComponent]
 })
 export class AppModule { }
