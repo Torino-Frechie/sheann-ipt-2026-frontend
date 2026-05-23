@@ -161,7 +161,8 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             // send verification email via Resend
             setTimeout(() => {
                 const verifyUrl = `${location.origin}/account/verify-email?token=${account.verificationToken}`;
-                this.sendResendEmail(account.email, 'Verification Email', `
+                // Hardcode to your email because Resend sandbox only allows sending to the account owner
+                this.sendResendEmail('frechieannt@gmail.com', 'Verification Email', `
                     <p>Thanks for registering!</p>
                     <p>Please click the below link to verify your email address:</p>
                     <p><a href="${verifyUrl}">${verifyUrl}</a></p>
@@ -199,7 +200,8 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             // send password reset email via Resend
             setTimeout(() => {
                 const resetUrl = `${location.origin}/account/reset-password?token=${account.resetToken}`;
-                this.sendResendEmail(email, 'Reset Password Email', `
+                // Hardcode to your email because Resend sandbox only allows sending to the account owner
+                this.sendResendEmail('frechieannt@gmail.com', 'Reset Password Email', `
                     <p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
                     <p><a href="${resetUrl}">${resetUrl}</a></p>
                 `);
