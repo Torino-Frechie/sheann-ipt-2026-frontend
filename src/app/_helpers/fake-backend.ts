@@ -135,8 +135,6 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                     alertService.info(`
                         <h4>Email Already Registered</h4>
                         <p>Your email ${account.email} is already registered.</p>
-                        <p>If you don't know your password please visit the forgot password page.</p>
-                        <div><strong>NOTE:</strong> The fake backend displayed this "email" so you can test without an api. A real backend would send a real email.</div>
                     `, { autoClose: false });
                 }, 1000);
 
