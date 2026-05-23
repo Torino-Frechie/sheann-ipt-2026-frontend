@@ -15,14 +15,14 @@ export class FakeBackendInterceptor implements HttpInterceptor {
     constructor(private alertService: AlertService) { }
 
     private sendResendEmail(to: string, subject: string, html: string) {
-        // Replace 're_YOUR_RESEND_API_KEY' with your actual Resend API Key
-        const resendApiKey = 're_gymtPgtr_3PvwJ8nitqjS6JjQCBSTo7H4';
+        // WARNING: Moving to real backend. Do not store API keys in frontend.
+        const resendApiKey = 'REPLACED_BY_BACKEND_SERVER_KEY';
 
         return fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${resendApiKey}`
+                'Authorization': `Bearer ${resendApiKey.trim()}`
             },
             body: JSON.stringify({
                 from: 'onboarding@resend.dev',
@@ -30,7 +30,16 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                 subject: subject,
                 html: html
             })
-        }).catch(err => console.error('Resend Error:', err));
+        })
+        .then(async response => {
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Resend API Error:', errorData);
+            } else {
+                console.log(`Email successfully sent to ${to}`);
+            }
+        })
+        .catch(err => console.error('Resend Network Error:', err));
     }
 
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -75,9 +84,13 @@ export class FakeBackendInterceptor implements HttpInterceptor {
 
         const authenticate = () => {
             const { email, password } = body;
-            const account = accounts.find(x => x.email === email && x.password === password && x.isVerified);
+            const account = accounts.find(x => x.email === email && x.password === password);
 
             if (!account) return error('Email or password is incorrect');
+
+            if (!account.isVerified) {
+                return error('Account not verified. Please check your Gmail (frechieannt@gmail.com) for the verification link.');
+            }
 
             // add refresh token to account
             if (!account.refreshTokens) account.refreshTokens = [];
@@ -131,15 +144,18 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             if (!account) return error('Account data is required');
 
             if (accounts.find(x => x.email === account.email)) {
-                // display email already registered "email" in alert
+                const existingAccount = accounts.find(x => x.email === account.email);
+                // Re-send verification email to help testing
+                sendVerificationEmail(existingAccount);
+
                 setTimeout(() => {
-                    alertService.info(`
+                    alertService.warn(`
                         <h4>Email Already Registered</h4>
                         <p>Your email ${account.email} is already registered.</p>
+                        <p>A new verification link has been sent to <strong>frechieannt@gmail.com</strong> for your testing.</p>
                     `, { autoClose: false });
                 }, 1000);
 
-                // always return ok() response to prevent email enumeration
                 return ok();
             }
 
@@ -160,28 +176,28 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             localStorage.setItem(accountsKey, JSON.stringify(accounts));
 
             // send verification email via Resend
+            sendVerificationEmail(account);
+
+            return ok();
+        };
+
+        const sendVerificationEmail = (account: any) => {
             setTimeout(() => {
                 const verifyUrl = `${location.origin}/account/verify-email?token=${account.verificationToken}`;
-                // Hardcode to your email because Resend sandbox only allows sending to the account owner
                 this.sendResendEmail('frechieannt@gmail.com', 'Verify Your Email Address', `
-                    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff;">
-                        <h2 style="color: #2c3e50; text-align: center; font-size: 24px;">Confirm your registration</h2>
-                        <p style="color: #555; font-size: 16px; line-height: 1.6;">Hi ${account.firstName},</p>
-                        <p style="color: #555; font-size: 16px; line-height: 1.6;">Welcome to our community! To complete your sign-up and start using your account, please click the button below to verify your email address.</p>
+                    <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                        <h2 style="color: #333; text-align: center;">Confirm your registration</h2>
+                        <p>Hi ${account.firstName},</p>
+                        <p>To complete your sign-up for <strong>${account.email}</strong>, please click the button below:</p>
                         <div style="text-align: center; margin: 35px 0;">
-                            <a href="${verifyUrl}" style="background-color: #2ecc71; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">Verify My Email</a>
+                            <a href="${verifyUrl}" style="background-color: #2ecc71; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Verify My Email</a>
                         </div>
-                        <p style="color: #999; font-size: 14px; line-height: 1.6;">If the button above doesn't work, copy and paste this link into your browser:</p>
-                        <p style="word-break: break-all; color: #3498db; font-size: 14px;">${verifyUrl}</p>
+                        <p style="font-size: 14px; color: #999;">If the button doesn't work, use this link: <br> ${verifyUrl}</p>
                         <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 30px 0;">
-                        <p style="font-size: 12px; color: #bdc3c7; text-align: center;">
-                            If you didn't create this account, you can safely ignore this email.
-                        </p>
+                        <p style="font-size: 11px; color: #bdc3c7; text-align: center;">Testing environment verification link</p>
                     </div>
                 `);
             }, 1000);
-
-            return ok();
         };
 
         const verifyEmail = () => {
@@ -202,7 +218,15 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             const account = accounts.find(x => x.email === email);
 
             // always return ok() response to prevent email enumeration
-            if (!account) return ok();
+            if (!account) {
+                setTimeout(() => {
+                    alertService.warn(`
+                        <h4>Email Not Found</h4>
+                        <p>The email ${email} is not registered in this browser's session.</p>
+                    `, { autoClose: false });
+                }, 1000);
+                return ok();
+            }
 
             // create reset token that expires after 24 hours
             account.resetToken = new Date().getTime().toString();

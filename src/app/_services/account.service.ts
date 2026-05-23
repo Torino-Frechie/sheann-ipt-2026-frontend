@@ -52,23 +52,23 @@ export class AccountService {
     }
 
     register(account: Account) {
-        return this.http.post(`${baseUrl}/register`, account);
+        return this.http.post(`${baseUrl}/register`, account, { withCredentials: true });
     }
 
     verifyEmail(token: string) {
-        return this.http.post(`${baseUrl}/verify-email`, { token });
+        return this.http.post(`${baseUrl}/verify-email`, { token }, { withCredentials: true });
     }
 
     forgotPassword(email: string) {
-        return this.http.post(`${baseUrl}/forgot-password`, { email });
+        return this.http.post(`${baseUrl}/forgot-password`, { email }, { withCredentials: true });
     }
 
     validateResetToken(token: string) {
-        return this.http.post(`${baseUrl}/validate-reset-token`, { token });
+        return this.http.post(`${baseUrl}/validate-reset-token`, { token }, { withCredentials: true });
     }
 
     resetPassword(token: string, password: string, confirmPassword: string) {
-        return this.http.post<Account>(`${baseUrl}/reset-password`, { token, password, confirmPassword })
+        return this.http.post<Account>(`${baseUrl}/reset-password`, { token, password, confirmPassword }, { withCredentials: true })
             .pipe(map(account => {
                 this.accountSubject.next(account);
                 this.startRefreshTokenTimer();
