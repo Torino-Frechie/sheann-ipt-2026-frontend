@@ -16,7 +16,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
 
     private sendResendEmail(to: string, subject: string, html: string) {
         // Replace 're_YOUR_RESEND_API_KEY' with your actual Resend API Key
-        const resendApiKey = 're_TjtMfChn_S5S5iT6LzQTYmTQvqo5wDPp2';
+        const resendApiKey = 're_gymtPgtr_3PvwJ8nitqjS6JjQCBSTo7H4';
 
         return fetch('https://api.resend.com/emails', {
             method: 'POST',
@@ -199,7 +199,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             // send password reset email via Resend
             setTimeout(() => {
                 const resetUrl = `${location.origin}/account/reset-password?token=${account.resetToken}`;
-                this.sendResendEmail('frechieannt@gmail.com', 'Reset Password Email', `
+                this.sendResendEmail(email, 'Reset Password Email', `
                     <p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
                     <p><a href="${resetUrl}">${resetUrl}</a></p>
                 `);
