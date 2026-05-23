@@ -162,10 +162,21 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             setTimeout(() => {
                 const verifyUrl = `${location.origin}/account/verify-email?token=${account.verificationToken}`;
                 // Hardcode to your email because Resend sandbox only allows sending to the account owner
-                this.sendResendEmail('frechieannt@gmail.com', 'Verification Email', `
-                    <p>Thanks for registering!</p>
-                    <p>Please click the below link to verify your email address:</p>
-                    <p><a href="${verifyUrl}">${verifyUrl}</a></p>
+                this.sendResendEmail('frechieannt@gmail.com', 'Verify Your Email Address', `
+                    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff;">
+                        <h2 style="color: #2c3e50; text-align: center; font-size: 24px;">Confirm your registration</h2>
+                        <p style="color: #555; font-size: 16px; line-height: 1.6;">Hi ${account.firstName},</p>
+                        <p style="color: #555; font-size: 16px; line-height: 1.6;">Welcome to our community! To complete your sign-up and start using your account, please click the button below to verify your email address.</p>
+                        <div style="text-align: center; margin: 35px 0;">
+                            <a href="${verifyUrl}" style="background-color: #2ecc71; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">Verify My Email</a>
+                        </div>
+                        <p style="color: #999; font-size: 14px; line-height: 1.6;">If the button above doesn't work, copy and paste this link into your browser:</p>
+                        <p style="word-break: break-all; color: #3498db; font-size: 14px;">${verifyUrl}</p>
+                        <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 30px 0;">
+                        <p style="font-size: 12px; color: #bdc3c7; text-align: center;">
+                            If you didn't create this account, you can safely ignore this email.
+                        </p>
+                    </div>
                 `);
             }, 1000);
 
@@ -201,9 +212,22 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             setTimeout(() => {
                 const resetUrl = `${location.origin}/account/reset-password?token=${account.resetToken}`;
                 // Hardcode to your email because Resend sandbox only allows sending to the account owner
-                this.sendResendEmail('frechieannt@gmail.com', 'Reset Password Email', `
-                    <p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
-                    <p><a href="${resetUrl}">${resetUrl}</a></p>
+                this.sendResendEmail('frechieannt@gmail.com', 'Securely Reset Your Password', `
+                    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff;">
+                        <h2 style="color: #2c3e50; text-align: center; font-size: 24px;">Password Reset Request</h2>
+                        <p style="color: #555; font-size: 16px; line-height: 1.6;">Hello,</p>
+                        <p style="color: #555; font-size: 16px; line-height: 1.6;">We received a request to reset your account password. Click the button below to proceed. For your security, this link is only valid for 24 hours.</p>
+                        <div style="text-align: center; margin: 35px 0;">
+                            <a href="${resetUrl}" style="background-color: #3498db; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;">Reset Password</a>
+                        </div>
+                        <p style="color: #555; font-size: 16px; line-height: 1.6;">If you didn't request this change, you can safely ignore this email; your account is still secure.</p>
+                        <p style="color: #999; font-size: 14px; line-height: 1.6;">If the button above doesn't work, copy and paste this link into your browser:</p>
+                        <p style="word-break: break-all; color: #3498db; font-size: 14px;">${resetUrl}</p>
+                        <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 30px 0;">
+                        <p style="font-size: 12px; color: #bdc3c7; text-align: center;">
+                            &copy; 2026 Your Deployed App. All rights reserved.
+                        </p>
+                    </div>
                 `);
             }, 1000);
 
@@ -236,9 +260,18 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             account.isVerified = true;
             delete account.resetToken;
             delete account.resetTokenExpires;
+            
+            // add refresh token to account to enable immediate login
+            if (!account.refreshTokens) account.refreshTokens = [];
+            account.refreshTokens.push(generateRefreshToken());
+            
             localStorage.setItem(accountsKey, JSON.stringify(accounts));
 
-            return ok();
+            // return user details and jwt token to facilitate auto-login
+            return ok({
+                ...basicDetails(account),
+                jwtToken: generateJwtToken(account)
+            });
         };
 
         const getAccounts = () => {
