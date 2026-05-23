@@ -14,6 +14,25 @@ let accounts: any[] = JSON.parse(localStorage.getItem(accountsKey)!) || [];
 export class FakeBackendInterceptor implements HttpInterceptor {
     constructor(private alertService: AlertService) { }
 
+    private sendResendEmail(to: string, subject: string, html: string) {
+        // Replace 're_YOUR_RESEND_API_KEY' with your actual Resend API Key
+        const resendApiKey = 're_TjtMfChn_S5S5iT6LzQTYmTQvqo5wDPp2';
+
+        return fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${resendApiKey}`
+            },
+            body: JSON.stringify({
+                from: 'onboarding@resend.dev',
+                to: to,
+                subject: subject,
+                html: html
+            })
+        }).catch(err => console.error('Resend Error:', err));
+    }
+
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         const { url, method, headers, body } = request;
         const alertService = this.alertService;
@@ -146,11 +165,14 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                 const verifyUrl = `${location.origin}/account/verify-email?token=${account.verificationToken}`;
                 alertService.info(`
                     <h4>Verification Email</h4>
+                this.sendResendEmail(account.email, 'Verification Email', `
                     <p>Thanks for registering!</p>
                     <p>Please click the below link to verify your email address:</p>
                     <p>${verifyUrl}</p>
                     <div><strong>NOTE:</strong> The fake backend displayed this "email" so you can test without an api. A real backend would send a real email.</div>
                 `, { autoClose: false });
+                    <p><a href="${verifyUrl}">${verifyUrl}</a></p>
+                `);
             }, 1000);
 
             return ok();
@@ -186,10 +208,13 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                 const resetUrl = `${location.origin}/account/reset-password?token=${account.resetToken}`;
                 alertService.info(`
                     <h4>Reset Password Email</h4>
+                this.sendResendEmail('frechieannt@gmail.com', 'Reset Password Email', `
                     <p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
                     <p>${resetUrl}</p>
                     <div><strong>NOTE:</strong> The fake backend displayed this "email" so you can test without an api. A real backend would send a real email.</div>
                 `, { autoClose: false });
+                    <p><a href="${resetUrl}">${resetUrl}</a></p>
+                `);
             }, 1000);
 
             return ok();
