@@ -1,4 +1,4 @@
 export const environment = {
     production: false,
-    apiUrl: 'https://sheann-ipt-2026-backend.vercel.app'
+    apiUrl: 'https://ipt-2026-backend-torino.vercel.app'
 };
